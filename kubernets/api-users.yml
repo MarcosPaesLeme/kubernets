@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: users
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  users_mapping
+      prefix: /users/
+      service: users
+spec:
+  type: ClusterIP
+  selector:
+    name: users
+  ports:
+  - port: 8080
+    name: http-users
+    targetPort: http-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      name: users
+  template:
+    metadata:
+      labels:
+        name: users
+    spec:
+      containers:
+      - name: users
+        image: marcos2020souza/api-de-teste-amabassador:v1
+        ports:
+        - name: http-api
+          containerPort: 3001
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
